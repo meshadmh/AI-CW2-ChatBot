@@ -24,8 +24,12 @@ def check_journey_loc(locations, station):
         return False
     
 def check_near_time(query_time, target_time, range_value):
-    "Check whether a given station time is within the bounds of another "
-    "as the station schedules are stupid and don't line up with the documents "
+    """
+    Check whether a given station time is within the bounds of another 
+    as the station schedules are stupid and don't line up with the documents 
+    querytime is a dictionary of the current station plan
+    """
+
     if query_time["arrival_time"] is not None:
         query_time = convert_to_number(query_time["arrival_time"])
     else:
@@ -67,9 +71,10 @@ def evaluate_affected_journeys(cancelled_stops, schedules_cancelled, line_block_
                 what.append(schedule_locations)
     #CHECK GOLDEN STATIONS:
     golden = []           
-    for stop in cancelled_stops:
+    for stop in cancelled_stops: # These services should not be cancelled or short-formed during term time!
         #if stop is a golden stop AND it is within the timeframe - consider it a golden service and flag it
-        if check_journey_loc(stop, "SHENFLD") and check_near_time(stop, 806,30):
+        #Range is given because the stops are all a bit random
+        if check_journey_loc(stop, "SHENFLD") and check_near_time(stop, 806,30): #STATIONDICTIONARY, TIME, RANGE.
             print("1Y08 SCHOOL TRAIN")
             golden.append(stop)
         elif check_journey_loc(stop, "SHENFLD") and check_near_time(stop, 736,30):
@@ -110,10 +115,27 @@ def evaluate_affected_journeys(cancelled_stops, schedules_cancelled, line_block_
             if check_journey_loc(stop, "IPSWICH") and check_near_time(stop, 1602,30):
                 print("1Y08 SCHOOL TRAIN")
                 special.append(stop)  
+                
+                
+            #Is the journey more than an hour late? -> Evoke the stranded customer response line
+            #Is the journey the last one on the schedule and has been cancelled/ customer is stranded / stranded due to other disrution?
+            #^^ OFFER HOTEL! Also if last train on the schedule then hold for longer for connectional delays
+            #See wiki for which services are branch lines - important for connectional delays
+            
+                
+                
     return what, golden, special
+
         #are stranded customers involved? 
         #are the journeys special stop orders?
         #Is the journey a golden service?
+        
+def extract_knowledge(line_block_loc, full_or_part):
+    #Should pull info about the given train, lineblockage and full_or_part. Maybe from a database.
+    #For instance
+    #
+    
+    return 0 
 
         
 possible_journeys, possible_schedules_affected, definitely_cancelled_stops, schedules_cancelled = get_possible_affected_journeys(600)
