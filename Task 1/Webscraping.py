@@ -54,11 +54,12 @@ def get_user_input():
     departure_location = input("Please enter your departure location: ")
     destination_location = input("Please enter your destination location: ")
     choose_date = input("Please enter your departure date: ")
-    choose_hour = input("Please enter your departure time: ")
+    choose_hour = input("Please enter your departure hour: ")
+    choose_minute = input("Please enter departure minute")
     passenger_number_adult = input("How many adult passengers are there?: ")
     passenger_number_child = input("How many child passengers are there?: ")
     railcard = input("Which railcard do you have?").upper()
-    return departure_location, destination_location, choose_date, choose_hour, passenger_number_adult, passenger_number_child, railcard
+    return departure_location, destination_location, choose_date, choose_hour, choose_minute, passenger_number_adult, passenger_number_child, railcard
 
 
 def departure(driver, origin, destination):
@@ -117,12 +118,12 @@ def input_departure_date(driver, choose_date):
         date_input.click()
         time.sleep(2)
 
-        # Clear input field
+        # Clear the input field
         driver.execute_script("arguments[0].value = '';", date_input)
         date_input.clear()
         time.sleep(2)
 
-        # Attempt to set the date using JavaScript
+        # Attempt to set the date using JavaScript Scripting
         driver.execute_script(f"arguments[0].value = '{choose_date}';", date_input)
         time.sleep(2)
 
@@ -131,7 +132,7 @@ def input_departure_date(driver, choose_date):
         if current_value == choose_date:
             print("Date inserted successfully:", choose_date)
         else:
-            # Use to sending keys if JavaScript isnt working
+            # Use to send keys if JavaScript isnt working
             date_input.click()
             date_input.clear()
             date_input.send_keys(choose_date)
@@ -160,6 +161,18 @@ def select_departure_hour(driver, hour):
         print("Timeout occurred while waiting for departure hour dropdown")
     except Exception as e:
         print("Error occurred while selecting departure hour:", e)
+
+def select_departure_minute(driver, minute):
+    try:
+        minute_dropdown = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="leaving-min"]')))
+        select = Select(minute_dropdown)
+        select.select_by_visible_text(minute)
+        print("Selected departure minute:", minute)
+    except TimeoutException:
+        print("Timeout occurred while waiting for departure minute dropdown")
+    except Exception as e:
+        print("Error occurred while selecting departure minute:", e)
+
 
 
 def select_adults(driver, passenger_number):
@@ -255,13 +268,14 @@ def main():
     click_cookie(driver)
     click_journey(driver)
     # Get user input for departure and destination locations
-    departure_location, destination_location,choose_date,choose_hour, passenger_number_adult, passenger_number_child, railcard = get_user_input()
+    departure_location, destination_location,choose_date,choose_hour,choose_minute, passenger_number_adult, passenger_number_child, railcard = get_user_input()
     # Input locations on the webpage
     input_locations(driver, departure_location, destination_location)
     # Input departure time
     input_departure_date(driver, choose_date)
     time.sleep(3)
     select_departure_hour(driver, choose_hour)
+    select_departure_minute(driver, choose_minute)
     select_adults(driver, passenger_number_adult)
     select_children(driver, passenger_number_child)
     add_railcard(driver, railcard)
