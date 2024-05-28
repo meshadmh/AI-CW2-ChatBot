@@ -1,0 +1,61 @@
+﻿station,full_or_part,train staff,passenger,signaller,message
+CLCHSTR,partial,1,0,0,I am a train staff member. There is a partial line blockage at colchester.
+IPSWICH,partial,1,0,0,I am a train staff member. There is a partial line blockage at ipswitch.
+HAGHLYJ,partial,1,0,0,I am a train staff member. There is a partial line blockage at haughley.
+east_suffolk-haughly,partial,1,0,0,I am a train staff member. There is a partial line blockage at east suffolk.
+DISS,partial,1,0,0,I am a train staff member. There is a partial line blockage at diss.
+CLCHSTR,full,1,0,0,I am a train staff member. There is a full blockage at colchester.
+MANNGTR,full,1,0,0,I am a train staff member. There is a full blockage at manningtree.
+IPSWICH,full,1,0,0,I am a train staff member. There is a full blockage at ipswitch.
+STWMRKT,full,1,0,0,I am a train staff member. There is a full blockage at stowmarket.
+DISS,full,1,0,0,I am a train staff member. There is a full blockage at diss.
+CLCHSTR,partial,0,1,0,I am a passenger. There is a partial line blockage at colchester.
+IPSWICH,partial,0,1,0,I am a  passenger. There is a partial line blockage at ipswitch.
+HAGHLYJ,partial,0,1,0,I am a  passenger. There is a partial line blockage at haughley.
+east_suffolk-haughly,partial,0,1,0,I am a passenger. There is a partial line blockage at east suffolk.
+DISS,partial,0,1,0,I am a  passenger. There is a partial line blockage at diss.
+CLCHSTR,full,0,1,0,I am a passenger. There is a full blockage at colchester.
+MANNGTR,full,0,1,0,I am a  passenger. There is a full blockage at manningtree.
+IPSWICH,full,0,1,0,I am a  passenger. There is a full blockage at ipswitch.
+STWMRKT,full,0,1,0,I am a  passenger. There is a full blockage at stowmarket.
+DISS,full,0,1,0,I am a  passenger. There is a full blockage at diss.
+CLCHSTR,partial,0,0,1,I am a signaller. There is a partial line blockage at colchester.
+IPSWICH,partial,0,0,1,I am a  signaller. There is a partial line blockage at ipswitch.
+HAGHLYJ,partial,0,0,1,I am a  signaller. There is a partial line blockage at haughley.
+east_suffolk-haughly,partial,0,0,1,I am a signaller. There is a partial line blockage at east suffolk.
+DISS,partial,0,0,1,I am a  signaller. There is a partial line blockage at diss.
+CLCHSTR,full,0,0,1,I am a signaller. There is a full blockage at colchester.
+MANNGTR,full,0,0,1,I am a  signaller. There is a full blockage at manningtree.
+IPSWICH,full,0,0,1,I am a  signaller. There is a full blockage at ipswitch.
+STWMRKT,full,0,0,1,I am a  signaller. There is a full blockage at stowmarket.
+DISS,full,0,0,1,I am a  signaller. There is a full blockage at diss.
+CLCHSTR,partial,1,0,0,I am a train staff member worker and there is a partial slight smaller blockage at colchester
+IPSWICH,partial,1,0,0,I am a train staff member worker and there is a partial slight smaller blockage at ipswitch
+HAGHLYJ,partial,1,0,0,I am a train staff member worker and there is a partial slight smaller blockage at haughley
+east_suffolk-haughly,partial,1,0,0,I am a train staff member worker and there is a partial slight smaller blockage at east suffolk
+DISS,partial,1,0,0,I am a train staff member worker and there is a partial slight smaller blockage at diss
+CLCHSTR,full,1,0,0,I am a train staff member worker and there is a full complete total blockage at colchester
+MANNGTR,full,1,0,0,I am a train staff member worker and there is a full complete total blockage at manningtree
+IPSWICH,full,1,0,0,I am a train staff member worker and there is a full complete total blockage at ipswitch
+STWMRKT,full,1,0,0,I am a train staff member worker and there is a full complete total blockage at stowmarket
+DISS,full,1,0,0,I am a train staff member worker and there is a full complete total blockage at diss
+CLCHSTR,partial,0,1,0,I am a passenger commuter and there is a partial slight smaller blockage at colchester
+IPSWICH,partial,0,1,0,I am a passenger  commuter and there is a partial slight smaller blockage at ipswitch
+HAGHLYJ,partial,0,1,0,I am a passenger commuter and there is a partial slight smaller blockage at haughley
+east_suffolk-haughly,partial,0,1,0,I am a passenger commuter and there is a partial slight smaller blockage at east suffolk
+DISS,partial,0,1,0,I am a passenger commuter and there is a partial slight smaller blockage at diss
+CLCHSTR,full,0,1,0,I am a passenger commuter and there is a full complete total blockage at colchester
+MANNGTR,full,0,1,0,I am a passenger commuter and there is a full complete total blockage at manningtree
+IPSWICH,full,0,1,0,I am a passenger commuter and there is a full complete total blockage at ipswitch
+STWMRKT,full,0,1,0,I am a passenger commuter and there is a full complete total blockage at stowmarket
+DISS,full,0,1,0,I am a passenger commuter and there is a full complete total blockage at diss
+CLCHSTR,partial,0,0,1,I am a signaller and there is a partial slight smaller blockage at colchester
+IPSWICH,partial,0,0,1,I am a signaller and there is a partial slight smaller blockage at ipswitch
+HAGHLYJ,partial,0,0,1,I am a signaller and there is a partial slight smaller blockage at haughley
+east_suffolk-haughly,partial,0,0,1,I am a signaller and there is a partial slight smaller blockage at east suffolk
+DISS,partial,0,0,1,I am a signaller and there is a partial slight smaller blockage at diss
+CLCHSTR,full,0,0,1,I am a signaller and there is a full complete total blockage at colchester
+MANNGTR,full,0,0,1,I am a signaller and there is a full complete total blockage at manningtree
+IPSWICH,full,0,0,1,I am a signaller and there is a full complete total blockage at ipswitch
+STWMRKT,full,0,0,1,I am a signaller and there is a full complete total blockage at stowmarket
+DISS,full,0,0,1,I am a signaller and there is a full complete total blockage at diss

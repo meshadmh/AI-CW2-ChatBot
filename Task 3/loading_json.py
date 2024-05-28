@@ -33,6 +33,7 @@ def import_json():
                     location_dict['arrival_time'] = location.get('arrival')
                     location_dict['departure_time'] = location.get('departure')
                     location_dict['platform'] = location.get('platform')
+                    location_dict['pass'] = location.get('pass')
                     
                     # Append location dictionary to schedule locations list
                     schedule_dict['schedule_locations'].append(location_dict)
