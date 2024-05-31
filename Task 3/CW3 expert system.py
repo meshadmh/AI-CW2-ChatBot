@@ -13,6 +13,17 @@ import numpy as np
 import pandas as pd
 from tkinter import *
 import process_schedule_all
+import staff_cdb as stf
+import problem_type_cdb as pblm
+import stations_cdb as stions
+import warnings
+import intentions_cdb as intentions
+import get_time
+
+
+# Filter out specific warning
+warnings.filterwarnings("ignore")
+
 
 BG_GRAY = "gainsboro"
 BG_COLOUR = "lavender"
@@ -32,7 +43,7 @@ for train in train_schedules[0]['schedule_locations']:
 
 #%%
 
-df = pd.read_csv('conversation_records.csv')
+df = pd.read_csv('conversation_records_new.csv')
 df = pd.DataFrame(df)
 
 chroma_client = chromadb.PersistentClient(path="/chroma_docs")
@@ -40,6 +51,7 @@ chroma_client = chromadb.PersistentClient(path="/chroma_docs")
 collection = chroma_client.get_or_create_collection(name="my_collection")
 
 documents = df["message"].tolist()
+
 #%%
 collection.add(
     documents=documents,
@@ -80,7 +92,7 @@ class ChatBot:
     def _setup_main_window(self):
         self.window.title("Chatbot")
         self.window.resizable(width=False, height=False)
-        self.window.geometry("500x600")
+        self.window.geometry("800x900")
 
     #head label
 
@@ -90,17 +102,20 @@ class ChatBot:
 #divider
         line = Label(self.window, width=500, bg=BG_GRAY)
         line.pack(fill=X)
-#text widget
-        self.text_widget = Text(self.window,width=20, height=2, bg=BG_COLOUR, fg=TEXT_COLOUR,
-                                font=FONT,padx=5,pady=5)
-        self.text_widget.pack(fill=BOTH, expand=True)
+        # Text widget frame
+        text_frame = Frame(self.window, bg=BG_COLOUR)
+        text_frame.pack(fill=BOTH, expand=True)
+
+        # Text widget
+        self.text_widget = Text(text_frame, width=20, height=2, bg=BG_COLOUR, fg=TEXT_COLOUR,
+                                font=FONT, padx=5, pady=5, wrap=WORD)
+        self.text_widget.pack(side=LEFT, fill=BOTH, expand=True)
         self.text_widget.configure(cursor="arrow", state=DISABLED)
-#scrollbar
-        scrollbar = Scrollbar(self.text_widget)
+
+        # Scrollbar
+        scrollbar = Scrollbar(text_frame, command=self.text_widget.yview)
         scrollbar.pack(side=RIGHT, fill=Y)
-        self.text_widget.see(CURRENT)
-        scrollbar.configure(command=self.text_widget.yview)
-        print("scrollbar")
+        self.text_widget['yscrollcommand'] = scrollbar.set
 
 #Bottom label
 
@@ -113,7 +128,7 @@ class ChatBot:
         message_frame.pack(fill=X)
         print("message frame")
 #message label
-        message_label = Label(message_frame, text="Type your message here: ", font=FONT, fg="white")
+        message_label = Label(message_frame, text="Type your message here: ", font=FONT, fg="black")
         message_label.pack(side=LEFT)
         print("message label")
 #messages
@@ -142,8 +157,9 @@ class ChatBot:
             #expert.knowledge['question'] = 'check_inputs'
         #Check the chromaDB has worked
         if expert.knowledge.get('question') == 'check_inputs':
+            intent = intentions.get_intentions(msg)
             #Should be 'positive intention'
-            if msg=="yes":
+            if intent=="yes":
 
                 #expert.reset()
                 expert.declare(Fact(location_provided=True))
@@ -157,8 +173,9 @@ class ChatBot:
                 expert.declare(Service(service = "line_blockage"))
         #IF the bot has recieved input, ask to recieve more line blockage problems 
         if expert.knowledge.get('question') =="check_for_another_input":
-            #Should be 'positive intention' THIS IS ALL HARD CODED ATM SHOULD BE NLP OR WHATEVER
-            if msg=="yes":
+            intention = intentions.get_intentions(msg)
+            #Should be 'positive intention'
+            if intention=="yes":
                 expert.knowledge['question'] ="asking_for_problem"
             else:
                 self.insert_messages("Bye!", "Chatbot")
@@ -167,34 +184,65 @@ class ChatBot:
         if expert.knowledge.get('question') == 'get_location':
             if msg=="blocked line":
                 expert.declare(Service(service = "line_blockage"))
+        #TIME
         if expert.knowledge.get('question') == 'ask_time':
-            if msg=="700":
-                expert.dictionary['time']=700
-                expert.declare(Fact(time = 700))
+            if int(msg):
+                msg=int(msg)
+                expert.dictionary['time']=msg
+                expert.declare(Fact(time = msg))
                 expert.declare(Fact(isQuestion = False))
                 expert.declare(Fact(time_provided=True))
-        if expert.knowledge.get('question') == 'ask_location':
-            if msg == 'colchester':
-                expert.dictionary['location']="CLCHSTR"
-                expert.declare(Fact(location = 'CLCHSTR'))
+            else:
+                
+                time = get_time.process_time(msg)
+                expert.dictionary['time']=time
+                expert.declare(Fact(time = time))
                 expert.declare(Fact(isQuestion = False))
-                expert.declare(Fact(location_provided=True))
-        if expert.knowledge.get('question') == 'ask_full_or_part':        
-            if msg == 'partial':
+                expert.declare(Fact(time_provided=True))
+        #station
+        if expert.knowledge.get('question') == 'ask_location':
+            station_match = stions.get_best_station(msg)
+            print(station_match)
+            expert.dictionary['location']=station_match
+            expert.declare(Fact(location = station_match))
+            expert.declare(Fact(isQuestion = False))
+            expert.declare(Fact(location_provided=True))
+        #full or part
+        if expert.knowledge.get('question') == 'ask_full_or_part':  
+            problem = pblm.get_blockage_type(msg)
+            if problem == 'partial':
                 expert.dictionary['full_or_part']="partial"
                 expert.declare(Fact(full_or_part = 'partial'))
                 expert.declare(Fact(isQuestion = False))
                 expert.declare(Fact(full_or_part_provided=True))
+            if problem == 'full':
+                expert.dictionary['full_or_part']="full"
+                expert.declare(Fact(full_or_part = 'full'))
+                expert.declare(Fact(isQuestion = False))
+                expert.declare(Fact(full_or_part_provided=True))
+        #profession
         if expert.knowledge.get('question') == 'ask_customer':
-            if msg == 'train staff':
+            staff_type = stf.get_staff_type(msg)
+            if staff_type == 'rail staff':
                 expert.dictionary['customer']="train staff"
                 expert.declare(Fact(customer = 'train staff'))
                 expert.declare(Fact(isQuestion = False))
                 expert.declare(Fact(customer_provided=True))
+            if staff_type == 'signaller':
+                expert.dictionary['customer']="signaller"
+                expert.declare(Fact(customer = 'signaller'))
+                expert.declare(Fact(isQuestion = False))
+                expert.declare(Fact(customer_provided=True))
+            if staff_type == 'passenger':
+                expert.dictionary['customer']="passenger"
+                expert.declare(Fact(customer = 'passenger'))
+                expert.declare(Fact(isQuestion = False))
+                expert.declare(Fact(customer_provided=True))
+                    
 
     def on_enter_pressed(self, event):
         msg = self.message_entry.get()
-        self.insert_messages(msg, "You ")
+        self.insert_messages(msg, "You")
         self.parse_message(msg)
         expert.declare(Fact("get_input", user_input=msg))
         expert.run()
@@ -229,23 +277,34 @@ def find_intention(user_input, dictionary, knowledge):
         return 'line_block'
     
 def get_value(df, full_or_part, location, target_column):
-    if target_column == "csd":
-        output_target_column = "customer service staff deployment advice"
-        
-    elif target_column == "alt_transport":
-        output_target_column = "alternative transport advice"
-    elif target_column == "signallers":
-        output_target_column = "signaller advice"
-    else:
-        output_target_column = target_column
     out_str = ""
-    out_str += "\n--------------------------------------------------------------------\n"
-    out_str += "Here is the " + output_target_column + " for a " + full_or_part + " blockage at " + location +"\n"
-    full_or_part = df['full_or_part'] == full_or_part
-    location = df['station'] == location
-    filtered_row = df[full_or_part & location]
-    out_str += filtered_row[target_column].values[0]
-    out_str += "\n--------------------------------------------------------------------\n"
+    full_or_part_1 = df['full_or_part'] == full_or_part
+    location_1 = df['station'] == location
+    filtered_row = df[full_or_part_1 & location_1]
+    if filtered_row.size == 0:
+        out_str += ""
+        if full_or_part =="full":
+            out_str += ""
+    else:
+        if target_column == "csd":
+            output_target_column = "customer service staff deployment advice"
+            
+        elif target_column == "alt_transport":
+            output_target_column = "alternative transport advice"
+        elif target_column == "signallers":
+            output_target_column = "signaller advice"
+        else:
+            output_target_column = target_column
+        
+        out_str += "\n--------------------------------------------------------------------\n"
+        out_str += "Here is the " + output_target_column + " for a " + full_or_part + " blockage at " + location +"\n"
+        full_or_part = df['full_or_part'] == full_or_part
+        location = df['station'] == location
+        filtered_row = df[full_or_part & location]
+    
+    
+        out_str += filtered_row[target_column].values[0]
+        out_str += "\n--------------------------------------------------------------------\n"
     return out_str
 
 
@@ -256,16 +315,22 @@ advice = advice.replace(r'\\n', '\n', regex=True)
 moose = get_value(advice, "partial","CLCHSTR", "alt_transport")
 
 def format_output(target_variables, location, full_or_part, time):
+    dead = 0
     output = ""
     output += "\n--------------------------------------------------------------------\n"
     for target_var in target_variables:
         output += get_value(advice, full_or_part,location, target_var)
+        if get_value(advice, full_or_part,location, target_var) =="":
+            dead = 1
+
     #print relvant advice then check to see if we can do more:
     output += "\n--------------------------------------------------------------------\n"
     if location in relevant_stations and (full_or_part=="full"):
         output += "Also, here is the amended timetable, given adjustments for special services and delays, making sure all services run in the correct order\n"
         output += process_schedule_all.get_all_schedule_advice(location,time, train_schedules)
-
+    elif dead:
+        output = "Sorry, I don't have any advice for this situation"
+    
     return output
 
 #%%
@@ -344,8 +409,8 @@ class contingency_expert(KnowledgeEngine):
         self.dictionary.clear()
         self.knowledge.clear()
         self.knowledge['question'] ="greeting"
-        
-        if user_input.lower() == "hi":
+        intent = intentions.get_intentions(user_input.lower())
+        if intent == "greeting":
             output = "hi! Is there currently a problem?"
             self.declare(Service(service="chat"))
             self.knowledge['question'] ="asking_for_problem"
@@ -389,7 +454,7 @@ class contingency_expert(KnowledgeEngine):
         self.retract(user_input_fact)
         #self.retract(serv)
         self.knowledge['question'] = 'check_inputs'
-        output = f'There is a {full_or_part} blockage, which is at {location}, and you are a {customer}.\n Is this correct?'
+        output = f'There is a {full_or_part} blockage, which is at {location}, and you are a {customer}.\nIs this correct?'
         app.insert_messages(output, "ChatBot")
     #IF it has worked, ask for time. If it hasn't, get back on track asking more precise questions
     # @Rule(AS.user_input_fact << Fact("get_input", user_input=MATCH.user_input),
@@ -595,7 +660,7 @@ expert.dictionary = {}
 expert.knowledge = {}
 expert.reset()
 
-# Run the knowledge base 
+# Run the knowledge base to diagnose the illness
 expert.run()
 
 

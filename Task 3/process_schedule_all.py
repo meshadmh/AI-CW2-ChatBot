@@ -644,9 +644,9 @@ def get_summary_advice(new_schedules,school_uids, golden_uids,special_uids,origi
         print("Please consider how the high number of passengers will be dealt with.")
         
     if len(original_special_uids) > 0:
-        out_string +="Shown below are SPECIAL services that will be disrupted. Since an important journey is being disrupted, the follwing stations must be held until shown:\n"
+        out_string +="Shown below are SPECIAL services that will be disrupted. Since an important journey is being disrupted, the following stations must be held until shown:\n"
         out_string +="--------------------------------------------------------------------\n"
-        print("Shown below are SPECIAL services that will be disrupted. Since an important journey is being disrupted, the follwing stations must be held until shown:\n")
+        print("Shown below are SPECIAL services that will be disrupted. Since an important journey is being disrupted, the following stations must be held until shown:\n")
         for uid in original_special_uids:
             journey = identify_uid(new_schedules, uid)
             #print("This journey is a heavy school loading train: starting",journey[0][0]['tiploc_code'], "at time",journey[0][0]['departure_time'])
