@@ -15,7 +15,7 @@ from tkinter import *
 import process_schedule_all
 import staff_cdb as stf
 import problem_type_cdb as pblm
-import stations_cdb as stions
+import get_stations_spaced as stions
 import warnings
 import intentions_cdb as intentions
 import get_time
@@ -142,10 +142,19 @@ class ChatBot:
         print("send button")
         send_button.pack(side=RIGHT)
     def kill(self):
-        app.destroy() 
-        #TODO destroy doesnt actually work
+        self.message_entry.destroy() 
+        self.text_widget.destroy()
+        self.window.destroy() 
+
     def parse_message(self,msg):
         #Take in chroma input
+        if expert.knowledge.get('question') == "asking_for_problem":
+            intent = intentions.get_intentions(msg)
+            if intent=="yes":
+                pass
+            else:
+                expert.reset()
+                pass
         if expert.knowledge.get('question') == 'ask_if_blockage':
             station, full_or_part, customer = query_chroma(msg)
             expert.reset()
@@ -158,7 +167,6 @@ class ChatBot:
         #Check the chromaDB has worked
         if expert.knowledge.get('question') == 'check_inputs':
             intent = intentions.get_intentions(msg)
-            #Should be 'positive intention'
             if intent=="yes":
 
                 #expert.reset()
@@ -167,15 +175,20 @@ class ChatBot:
                 expert.declare(Fact(customer_provided=True))
                 #expert.modify(Service(service='check_inputs'), service='blocked_line')
                 expert.declare(Service(service = "line_blockage"))
+                print(expert.facts)
+                print(expert.dictionary)
             else:
                 #Some how get back on track
                 expert.reset()
+                expert.dictionary.clear()
                 expert.declare(Service(service = "line_blockage"))
         #IF the bot has recieved input, ask to recieve more line blockage problems 
         if expert.knowledge.get('question') =="check_for_another_input":
             intention = intentions.get_intentions(msg)
             #Should be 'positive intention'
             if intention=="yes":
+
+                
                 expert.knowledge['question'] ="asking_for_problem"
             else:
                 self.insert_messages("Bye!", "Chatbot")
@@ -186,15 +199,13 @@ class ChatBot:
                 expert.declare(Service(service = "line_blockage"))
         #TIME
         if expert.knowledge.get('question') == 'ask_time':
-            if int(msg):
-                msg=int(msg)
-                expert.dictionary['time']=msg
-                expert.declare(Fact(time = msg))
-                expert.declare(Fact(isQuestion = False))
-                expert.declare(Fact(time_provided=True))
+
+
+            time = get_time.process_time(msg)
+            if time =="unclear":
+                pass
             else:
-                
-                time = get_time.process_time(msg)
+                time = int(time) #debug
                 expert.dictionary['time']=time
                 expert.declare(Fact(time = time))
                 expert.declare(Fact(isQuestion = False))
@@ -202,12 +213,16 @@ class ChatBot:
         #station
         if expert.knowledge.get('question') == 'ask_location':
             station_match = stions.get_best_station(msg)
-            print(station_match)
-            expert.dictionary['location']=station_match
-            expert.declare(Fact(location = station_match))
-            expert.declare(Fact(isQuestion = False))
-            expert.declare(Fact(location_provided=True))
-        #full or part
+            if station_match == "unclear":
+                pass
+            else:
+                print(station_match)
+                expert.dictionary['location']=station_match
+                expert.declare(Fact(location = station_match))
+                expert.declare(Fact(isQuestion = False))
+                expert.declare(Fact(location_provided=True))
+                expert.declare(Fact(check_location=True))
+        #check inputs location
         if expert.knowledge.get('question') == 'ask_full_or_part':  
             problem = pblm.get_blockage_type(msg)
             if problem == 'partial':
@@ -238,6 +253,13 @@ class ChatBot:
                 expert.declare(Fact(customer = 'passenger'))
                 expert.declare(Fact(isQuestion = False))
                 expert.declare(Fact(customer_provided=True))
+            expert.reset()
+            expert.declare(Fact(customer = expert.dictionary['customer']))
+            expert.declare(Fact(full_or_part = expert.dictionary['full_or_part']))
+            expert.declare(Fact(location = expert.dictionary['location']))
+            #expert.declare(Fact(time = expert.dictionary.get('time')))
+            expert.declare(Fact(isQuestion = False))
+            expert.declare(Service(service = 'check_inputs'))
                     
 
     def on_enter_pressed(self, event):
@@ -264,9 +286,6 @@ class ChatBot:
         self.text_widget.insert(END, msg1)
         self.text_widget.see(CURRENT)
         self.text_widget.configure(state=DISABLED)
-
-
-#%%
 
 
 def find_intention(user_input, dictionary, knowledge):
@@ -333,7 +352,7 @@ def format_output(target_variables, location, full_or_part, time):
     
     return output
 
-#%%
+
 class line_blockage(Fact):
     "Contains all info about the event"
     pass
@@ -363,6 +382,9 @@ class customer(Fact):
     "Who is the bot talking to?"
     pass
 class location_provided(Fact):
+    "Who is the bot talking to?"
+    pass
+class check_location(Fact):
     "Who is the bot talking to?"
     pass
 class contingency_expert(KnowledgeEngine):
@@ -411,9 +433,12 @@ class contingency_expert(KnowledgeEngine):
         self.knowledge['question'] ="greeting"
         intent = intentions.get_intentions(user_input.lower())
         if intent == "greeting":
-            output = "hi! Is there currently a problem?"
+            output = "Hi! Is there currently a problem?"
             self.declare(Service(service="chat"))
             self.knowledge['question'] ="asking_for_problem"
+        elif intent =="no":
+            output ="Let me know if there is an issue."
+            self.reset_bot()
         else:
             output ="Is there currently a line blockage?"
         app.insert_messages(output, "ChatBot")
@@ -448,7 +473,7 @@ class contingency_expert(KnowledgeEngine):
         Fact(full_or_part = MATCH.full_or_part),
         Fact(location = MATCH.location),
         Fact(customer = MATCH.customer),
-        NOT(Fact(location_provided=True))
+        NOT(Fact(location_provided=True)), salience=100
         )
     def check_inputs(self, user_input_fact, user_input,customer,location,full_or_part):
         self.retract(user_input_fact)
@@ -456,19 +481,7 @@ class contingency_expert(KnowledgeEngine):
         self.knowledge['question'] = 'check_inputs'
         output = f'There is a {full_or_part} blockage, which is at {location}, and you are a {customer}.\nIs this correct?'
         app.insert_messages(output, "ChatBot")
-    #IF it has worked, ask for time. If it hasn't, get back on track asking more precise questions
-    # @Rule(AS.user_input_fact << Fact("get_input", user_input=MATCH.user_input),
-    #     #AS.serv << Fact("check_inputs", service=MATCH.service),
-    #     Service(service = 'go_slower'),
-    #     NOT(Fact(location_provided=True))
-    #     )
-    # def apologise_and_go_slower(self, user_input_fact, user_input,customer,location,full_or_part):
-    #     self.retract(user_input_fact)
-    #     #self.retract(serv)
-    #     self.knowledge['question'] = 'check_inputs'
-    #     output = f'There is a {full_or_part} blockage, which is at {location}, and you are a {customer}.\n Is this correct?'
-    #     app.insert_messages(output, "ChatBot")
-        
+
     #Ask location
     @Rule(
         AS.user_input_fact << Fact("get_input", user_input=MATCH.user_input),
@@ -488,20 +501,21 @@ class contingency_expert(KnowledgeEngine):
                 output = "Sorry I don't understand" 
             elif self.knowledge['question'] == 'check_inputs':
                 self.knowledge['question'] = 'ask_location'
-                output = "Aplogies, let's go a bit slower. Firstly, what is your location?"
+                output = "Apologies, let's go a bit slower. Firstly, what is your location?"
             else:
                 self.knowledge['question'] = 'ask_location'
-                output = "Pls give location"
+                output = "Please give blockage location"
             self.knowledge['question'] = 'ask_location'
             app.insert_messages(output, "ChatBot")
             #self.declare(Fact(isQuestion = True))
-            
+
+        #self.declare(Fact(isQuestion = True))hi
    #ask time      
     @Rule(
         AS.user_input_fact << Fact("get_input", user_input=MATCH.user_input),
         Service(service= "line_blockage"),
         NOT(Fact(time_provided=True)),
-        NOT(Fact(isQuestion)),salience=98
+        NOT(Fact(isQuestion)),salience=90
         ) 
     def get_time(self, user_input_fact, user_input):
         self.retract(user_input_fact)
@@ -513,7 +527,7 @@ class contingency_expert(KnowledgeEngine):
         else:
             #if it's already asked the question and can't comprehend it
             if self.knowledge['question'] == 'ask_time':
-                output = "Sorry I don't understand" 
+                output = "Sorry I don't understand. Please input your answer in HHMM format." 
             else:
                 self.knowledge['question'] = 'ask_time'
                 output= "What's the time?"
@@ -576,7 +590,7 @@ class contingency_expert(KnowledgeEngine):
         Fact(full_or_part = 'partial'),
         Fact(location = MATCH.location),
         Fact(time = MATCH.time),
-        Fact(customer = "train staff")
+        Fact(customer = "train staff"), salience=50
         )
     def advise_train_staff_part(self,  location,time, user_input_fact, user_input):
         self.retract(user_input_fact)
@@ -592,7 +606,7 @@ class contingency_expert(KnowledgeEngine):
         Fact(full_or_part = 'partial'),
         Fact(location = MATCH.location),
         Fact(time = MATCH.time),
-        Fact(customer = "signaller")
+        Fact(customer = "signaller"), salience=50
         )
     def advise_signaller_part(self, user_input_fact, location,time):
         self.retract(user_input_fact)
@@ -606,7 +620,7 @@ class contingency_expert(KnowledgeEngine):
         Fact(full_or_part = 'partial'),
         Fact(location = MATCH.location),
         Fact(time = MATCH.time),
-        Fact(customer = "passenger")
+        Fact(customer = "passenger"), salience=50
         )
     def advise_passenger_part(self,user_input_fact,  location,time):
         self.retract(user_input_fact)
@@ -620,7 +634,7 @@ class contingency_expert(KnowledgeEngine):
         Fact(full_or_part = 'full'),
         Fact(location = MATCH.location),
         Fact(time = MATCH.time),
-        Fact(customer = "passenger")
+        Fact(customer = "passenger"), salience=50
         )
     def advise_passenger_full(self,user_input_fact,  location,time):
         self.retract(user_input_fact)
@@ -633,7 +647,7 @@ class contingency_expert(KnowledgeEngine):
         Fact(full_or_part = 'full'),
         Fact(location = MATCH.location),
         Fact(time = MATCH.time),
-        Fact(customer = "signaller")
+        Fact(customer = "signaller"), salience=50
         )
     def advise_signaller_full(self,user_input_fact,  location,time):
         self.retract(user_input_fact)
@@ -646,7 +660,7 @@ class contingency_expert(KnowledgeEngine):
         Fact(full_or_part = 'full'),
         Fact(location = MATCH.location),
         Fact(time = MATCH.time),
-        Fact(customer = "train staff")
+        Fact(customer = "train staff"), salience=50
         )
     def advise_train_staff_full(self,user_input_fact,  location,time):
         self.retract(user_input_fact)

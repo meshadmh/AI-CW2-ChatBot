@@ -26,7 +26,7 @@ collection.add(
 )
 
 
-
+#%%
 def get_best_station(user_input):
     
     results = collection.query(
@@ -37,5 +37,12 @@ def get_best_station(user_input):
     
     return df["name"][closest_match]
 
-
-        
+print(get_best_station("colchester"))
+print(get_best_station("ipswitch"))
+print(get_best_station("colchst"))
+print(get_best_station("shnfield"))
+print(get_best_station("shenfield"))
+print(get_best_station("diss"))
+print(get_best_station("haughely"))
+print(get_best_station("clemsford"))
+print(get_best_station("Clemsford "))
