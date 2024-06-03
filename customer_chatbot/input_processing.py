@@ -17,7 +17,7 @@ from datetime import datetime
 import stations
 import intentions_cdb as intent
 import problemtype_cbd as problem
-import staff_cdb as staff
+import railcard_cdb as rc
 
 # Load language model
 nlp = spacy.load('en_core_web_lg')
@@ -266,6 +266,18 @@ def process_staff(input_staff):
     return staff_type
 
 
+def process_railcard(input_railcard):
+    doc1 = nlp(input_railcard)
+    railcard = 0
+    for token in doc1:
+        if token.text.lower() in ["railcard", "card"]:
+            railcard = rc.get_railcard(input_railcard)
+        if railcard != 0:
+            break
+
+    return railcard
+
+
 """ Functions for extracting as much information as possible from an initial input """
 
 
@@ -274,8 +286,9 @@ def process_booking_input(initial_input):
     time = process_time(initial_input)
     date = process_date(initial_input)
     adults, children = process_passengers(initial_input)
+    railcard = process_railcard(initial_input)
 
-    return departure, destination, time, date, adults, children
+    return departure, destination, time, date, adults, children, railcard
 
 
 def process_delay_input(initial_input):
@@ -306,41 +319,45 @@ def lemmatize_and_clean(input):
 
 if __name__ == "__main__":
     # TESTING INPUTS HERE
-    input = "3 adults and two children for Norwich"
+    input = "i have a dcg railcard."
     print("\nInput: ", input)
-    print("Passengers: ", process_passengers(input))
+    print("Railcard: ", process_railcard(input))
 
-    input = "3rd of May"
-    print("\nInput: ", input)
-    print("Date: ", process_date(input))
-
-    input = "seven am"
-    print("\nInput: ", input)
-    print("Time: ", process_time(input))
-
-    input = "I'm seven minutes and half an hour late."
-    print("\nInput: ", input)
-    print("Minutes Late: ", process_lateness(input))
-
-    input = "I want to check a delay going from ipswich to colchester"
-    print("\nInput: ", input)
-    print("Intention: ", process_intention(input))
-    print("Stations: ", process_station(input))
-
-    input = "I would like to buy a ticket from norwich to ipswich for four passengers at 7 am on the 3rd of May"
-    print("\nInput: ", input)
-    print("Intention: ", process_intention(input))
-    print("Booking Info: ", process_booking_input(input))
-
-    input = "I am delayed by forty minutes at colchester heading  to stratford"
-    print("\nInput: ", input)
-    print("Intention: ", process_intention(input))
-    print("Delay Info: ", process_delay_input(input))
-
-    input = "I am a rail staff looking for help. There's a rock blocking part of the line at Norwich."
-    print("\nInput: ", input)
-    print("Intention: ", process_problem(input))
-    print("Delay Info: ", process_problem_input(input))
+    # input = "3 adults and two children for Norwich"
+    # print("\nInput: ", input)
+    # print("Passengers: ", process_passengers(input))
+    #
+    # input = "3rd of May"
+    # print("\nInput: ", input)
+    # print("Date: ", process_date(input))
+    #
+    # input = "seven am"
+    # print("\nInput: ", input)
+    # print("Time: ", process_time(input))
+    #
+    # input = "I'm seven minutes and half an hour late."
+    # print("\nInput: ", input)
+    # print("Minutes Late: ", process_lateness(input))
+    #
+    # input = "I want to check a delay going from ipswich to colchester"
+    # print("\nInput: ", input)
+    # print("Intention: ", process_intention(input))
+    # print("Stations: ", process_station(input))
+    #
+    # input = "I would like to buy a ticket from norwich to ipswich for four passengers at 7 am on the 3rd of May"
+    # print("\nInput: ", input)
+    # print("Intention: ", process_intention(input))
+    # print("Booking Info: ", process_booking_input(input))
+    #
+    # input = "I am delayed by forty minutes at colchester heading  to stratford"
+    # print("\nInput: ", input)
+    # print("Intention: ", process_intention(input))
+    # print("Delay Info: ", process_delay_input(input))
+    #
+    # input = "I am a rail staff looking for help. There's a rock blocking part of the line at Norwich."
+    # print("\nInput: ", input)
+    # print("Intention: ", process_problem(input))
+    # print("Delay Info: ", process_problem_input(input))
 
 
 

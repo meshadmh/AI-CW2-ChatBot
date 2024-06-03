@@ -131,6 +131,11 @@ class ChatBot:
                 self.insert_messages(children, "TEST")
                 expert.declare(Ticket(adults=adults, children=children))
                 expert.request = ""
+            elif expert.request == "get_railcard":
+                railcard = ip.process_railcard(msg)
+                self.insert_messages(railcard, "TEST")
+                expert.declare(Ticket(railcard=railcard))
+                expert.request = ""
 
         elif expert.type == 'delay':
             if expert.request == "get_destination":
@@ -167,8 +172,8 @@ class ChatBot:
                     expert.reset()
                     expert.type = 'booking'
 
-                    departure, destination, time, date, adults, children = ip.process_booking_input(msg)
-                    results = f"Initial Results: {departure}, {destination}, {date}, {time}, {adults}, {children}\n"
+                    departure, destination, time, date, adults, children, railcard = ip.process_booking_input(msg)
+                    results = f"Initial Results: {departure}, {destination}, {date}, {time}, {adults}, {children}, {railcard}\n"
                     app.insert_messages(results, "Chatbot")
 
                     if destination and destination != 'unclear':
@@ -183,6 +188,8 @@ class ChatBot:
                         expert.declare(Ticket(adults=adults))
                     if children and children != 0:
                         expert.declare(Ticket(children=children))
+                    if railcard and railcard != 0:
+                        expert.declare(Ticket(railcard=railcard))
                     expert.declare(UserIntent(action='buy_ticket'))
 
                 case 'delay':
@@ -301,16 +308,23 @@ class CustomerExpert(KnowledgeEngine):
         app.insert_messages("Please enter the number of passengers:", "Chatbot")
         self.halt()
 
+    @Rule(UserIntent(action='buy_ticket') & Ticket(time=MATCH.t) & NOT(Ticket(railcard=W())),
+          salience=2)
+    def ask_railcard_info(self):
+        self.request = "get_railcard"
+        app.insert_messages("Do you have a railcard?:", "Chatbot")
+        self.halt()
+
     @Rule(UserIntent(action='buy_ticket') & Ticket(destination=MATCH.d) & Ticket(departure=MATCH.de) & Ticket(
-        date=MATCH.dt) & Ticket(time=MATCH.t) & Ticket(adults=MATCH.a) & Ticket(children=MATCH.c), salience=1)
-    def print_book_report(self, d, de, dt, t, a, c):
+        date=MATCH.dt) & Ticket(time=MATCH.t) & Ticket(adults=MATCH.a) & Ticket(children=MATCH.c) & Ticket(railcard=MATCH.r), salience=1)
+    def print_book_report(self, d, de, dt, t, a, c, r):
         self.request = ""
         self.type = "completed"
-        report = f"Ticket information:\nDestination: {d}\nDeparture: {de}\nDate: {dt}\nTime: {t}\nPassengers: {a} Adults, {c} Children"
+        report = f"Ticket information:\nDestination: {d}\nDeparture: {de}\nDate: {dt}\nTime: {t}\nPassengers: {a} Adults, {c} Children\nRailcard: {r}"
         app.insert_messages(report, "Chatbot")
         tm.sleep(1)
 
-        ticket_links = Webscraping.main({d}, {de}, {dt}, {t}, [{a}, {c}])
+        ticket_links = Webscraping.main(d, de, dt, t, [a, c], r)
         if ticket_links:
             for link in ticket_links:
                 app.insert_messages(f"Ticket Link: {link}", "Chatbot")
@@ -352,7 +366,8 @@ class CustomerExpert(KnowledgeEngine):
         report = f"Destination: {d}\nCurrent Station: {c}\nMinutes Late: {ml}"
         app.insert_messages(report, "Chatbot")
 
-        predict_delay.predict_lateness({c}, {d}, {ml})
+        delay_report = predict_delay.predict_lateness(c, d, ml)
+        app.insert_messages(delay_report, "Chatbot")
 
         tm.sleep(1)
         app.insert_messages("Thank you for using the chatbot. If you have another request, let me know!", "Chatbot")

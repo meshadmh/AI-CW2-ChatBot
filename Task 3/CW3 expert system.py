@@ -92,7 +92,7 @@ class ChatBot:
     def _setup_main_window(self):
         self.window.title("Chatbot")
         self.window.resizable(width=False, height=False)
-        self.window.geometry("800x900")
+        self.window.geometry("800x600")
 
     #head label
 

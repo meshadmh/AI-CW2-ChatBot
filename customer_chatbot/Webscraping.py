@@ -189,7 +189,7 @@ def extract_train_ticket(driver):
         return []
 
 
-def main(destination, departure, date, hour, passengers):
+def main(destination, departure, date, hour, passengers, railcard):
     driver = webdriver.Chrome()
     driver.get("https://www.nationalrail.co.uk")
     click_cookie(driver)

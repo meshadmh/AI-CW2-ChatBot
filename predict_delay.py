@@ -8,6 +8,8 @@ Created on Mon Jun  3 13:33:45 2024
 
 from datetime import datetime, timedelta
 import pickle
+
+import numpy
 import numpy as np
 import warnings
 
@@ -167,16 +169,20 @@ def predict_lateness(current_station, target, lateness):
     while next_station != target:  # Stop when you reach target
         # Predict lateness at the next station
         next_lateness = models[next_station].predict(parameters)
-        parameters[0][0] = next_lateness
+        print(next_lateness)
+        #parameters[0][0] = next_lateness
+
         
         starting_index = starting_index + 1
         next_station = stations[starting_index]
+        print(next_lateness)
         if next_station == target:
             c = datetime.now()
             current_time = c.strftime('%H%M')
-            arr_time = add_minutes_to_time(current_time, parameters[0][0] +time_of_journey)
-            out_string = f"Your train will be {parameters[0][0]} minutes late, and will arrive at {arr_time}."
+            arr_time = add_minutes_to_time(current_time, float(next_lateness) +time_of_journey)
+            out_string = f"Your train will be {int(numpy.round(next_lateness[0]))} minutes late, and will arrive at {arr_time}."
             print(arr_time)
+            print(out_string)
             return out_string
 
         # Print the predicted lateness for the next station
