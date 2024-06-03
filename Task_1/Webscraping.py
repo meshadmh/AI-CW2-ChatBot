@@ -249,20 +249,20 @@ def extract_train_ticket(driver):
         return []
 
 
-def main(destination, departure, date, hour, passengers):
+def main():
     driver = webdriver.Chrome()
     driver.get("https://www.nationalrail.co.uk")
     click_cookie(driver)
     click_journey(driver)
     # Get user input for departure and destination locations
-<<<<<<< HEAD:Task_1/Webscraping.py
+
     # departure_location, destination_location,choose_date,choose_hour = get_user_input()
 
-    departure_location, destination_location, choose_date, choose_hour = departure, destination, date, hour
+    #departure_location, destination_location, choose_date, choose_hour = departure, destination, date, hour
 
-=======
+
     departure_location, destination_location,choose_date,choose_hour, passenger_number_adult, passenger_number_child, railcard = get_user_input()
->>>>>>> pr/5:Task 1/Webscraping.py
+
     # Input locations on the webpage
     input_locations(driver, departure_location, destination_location)
     # Input departure time
