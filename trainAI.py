@@ -1,13 +1,9 @@
 # Import Packages
-import spacy.cli
 
 # Import Functions
-import intention_spacy
-import lemmatize
 import train_ke as ke
 import process_input as pi
-import intentions_cdb
-
+from customer_chatbot import intentions_cdb
 
 # nlp = spacy.load('en_core_web_lg')
 

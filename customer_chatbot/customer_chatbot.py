@@ -14,9 +14,8 @@ import webbrowser
 # IMPORT PACKAGES
 import intentions_cdb as intentions
 import input_processing as ip
-from Task_1 import Webscraping
-
-
+import Webscraping
+import predict_delay
 
 # Filter out specific warning
 warnings.filterwarnings("ignore")
@@ -41,7 +40,7 @@ class ChatBot:
     def _setup_main_window(self):
         self.window.title("Chatbot")
         self.window.resizable(width=False, height=False)
-        self.window.geometry("800x900")
+        self.window.geometry("800x600")
 
         # head label
         head_label = tk.Label(self.window, bg=BG_COLOUR, fg=TEXT_COLOUR,
@@ -352,6 +351,9 @@ class CustomerExpert(KnowledgeEngine):
         self.type = "completed"
         report = f"Destination: {d}\nCurrent Station: {c}\nMinutes Late: {ml}"
         app.insert_messages(report, "Chatbot")
+
+        predict_delay.predict_lateness({c}, {d}, {ml})
+
         tm.sleep(1)
         app.insert_messages("Thank you for using the chatbot. If you have another request, let me know!", "Chatbot")
         self.halt()

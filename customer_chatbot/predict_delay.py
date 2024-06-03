@@ -11,7 +11,7 @@ def load_models():
     # Load the models from files
     loaded_model_dict = {}
     for station_name in loaded_station_names:
-        with open(f'Task_2/{station_name}_model_knn_not_imputed_NEW.pkl', 'rb') as model_file:
+        with open(f'{station_name}_model_knn_not_imputed_NEW.pkl', 'rb') as model_file:
             loaded_model_dict[station_name] = pickle.load(model_file)
 
     return loaded_model_dict
