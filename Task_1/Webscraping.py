@@ -189,13 +189,16 @@ def extract_train_ticket(driver):
         return []
 
 
-def main():
+def main(destination, departure, date, hour, passengers):
     driver = webdriver.Chrome()
     driver.get("https://www.nationalrail.co.uk")
     click_cookie(driver)
     click_journey(driver)
     # Get user input for departure and destination locations
-    departure_location, destination_location,choose_date,choose_hour = get_user_input()
+    # departure_location, destination_location,choose_date,choose_hour = get_user_input()
+
+    departure_location, destination_location, choose_date, choose_hour = departure, destination, date, hour
+
     # Input locations on the webpage
     input_locations(driver, departure_location, destination_location)
     # Input departure time
@@ -210,10 +213,13 @@ def main():
         print("Train ticket link:")
         for link in ticket_links:
             print(link)
+        return ticket_links
     else:
         print("Failed to retrieve ticket link")
 
     time.sleep(160)
     driver.quit()
+
+
 if __name__ == "__main__":
     main()
