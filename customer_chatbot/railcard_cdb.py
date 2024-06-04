@@ -64,7 +64,7 @@ railcards = {
         "job centre plus travel discount card",
         "hrc railcard",
     ],
-    "MyCumbriaCard": [
+    "MyCumbria Card": [
         "my cumbria card",
         "cur railcard",
     ]

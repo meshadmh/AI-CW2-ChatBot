@@ -216,7 +216,7 @@ class ChatBot:
                     departure, destination, time, date, adults, children, railcard = ip.process_booking_input(msg)
                     results = f"Initial Results: {departure}, {destination}, {date}, {time}, {adults}, {children}, {railcard}\n"
                     print(results)
-                    # app.insert_messages(results, "Chatbot")
+                    app.insert_messages(results, "Chatbot")
 
                     # Declare results if they returned a relevant value
                     if destination and destination != 'unclear':
@@ -371,7 +371,7 @@ class CustomerExpert(KnowledgeEngine):
     def print_book_report(self, d, de, dt, t, a, c, r):
         self.request = ""
         self.type = "completed"
-        report = f"Ticket information:\nDestination: {d}\nDeparture: {de}\nDate: {dt}\nTime: {t}\nPassengers: {a} Adults, {c} Children\nRailcard: {r}"
+        report = f"Ticket information:\nDestination: {d}\nDeparture: {de}\nDate: {dt}\nTime: {t[0]}:{t[1]}\nPassengers: {a} Adults, {c} Children\nRailcard: {r}"
         app.insert_messages(report, "Chatbot")
         tm.sleep(1)
 

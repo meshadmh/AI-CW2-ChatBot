@@ -11,6 +11,7 @@ from spacy.matcher import Matcher
 from word2number import w2n
 import dateparser
 from datetime import datetime
+from textblob import TextBlob
 
 
 # Import Files
@@ -21,6 +22,15 @@ import railcard_cdb as rc
 
 # Load language model
 nlp = spacy.load('en_core_web_lg')
+
+""" Spell Checker """
+
+def correct_spelling(spell_check):
+    spelling_corrected = TextBlob(spell_check)
+    spelling_corrected = str(spelling_corrected.correct())
+
+    return spelling_corrected
+
 
 """ Functions for extracting targeted entity information"""
 
@@ -96,7 +106,7 @@ def process_date(input_date):
 
     # Extract and format time
     if parsed_date is not None:
-        ddmm_date = parsed_date.strftime("%d/%m/%Y")
+        ddmm_date = parsed_date.strftime("%d %B %Y")
         return ddmm_date
     else:
         return 'unclear'
@@ -135,8 +145,16 @@ def process_hour(input_hour):
     # Extract and format time
     if parsed_date is not None:
         parsed_time = parsed_date.time()
-        hhmm_time = parsed_time.strftime("%H")
-        return hhmm_time
+        hh_time = parsed_time.strftime("%H")
+        mm_time = parsed_time.strftime("%M")
+        # Round minutes to quarter of an hour
+        int_minutes = int(mm_time)
+        round_minutes = round(int_minutes / 15) * 15
+        # Properly format 60 minutes
+        if round_minutes == 60:
+            round_minutes = 00
+        minutes = str(round_minutes)
+        return [hh_time, minutes]
     else:
         return 'unclear'
 
@@ -358,19 +376,29 @@ def process_railcard_only(input_railcard):
 
 
 def process_booking_input(initial_input):
+    spelling_corrected = correct_spelling(initial_input)
+    print("Corrected Spelling: ", spelling_corrected)
     departure, destination, current = process_station(initial_input)
+    if departure == "unclear" or destination == "unclear":
+        departure, destination, current = process_station(spelling_corrected)
     # time = process_time(initial_input)
     time = process_hour(initial_input)
     date = process_date(initial_input)
     adults, children = process_passengers(initial_input)
     railcard = process_railcard(initial_input)
+    if railcard == "unclear":
+        railcard = process_railcard(spelling_corrected)
 
     return departure, destination, time, date, adults, children, railcard
 
 
 def process_delay_input(initial_input):
+    spelling_corrected = correct_spelling(initial_input)
+    print("Corrected Spelling: ", spelling_corrected)
+    minutes_late = process_lateness(spelling_corrected)
     departure, destination, current = process_station(initial_input)
-    minutes_late = process_lateness(initial_input)
+    if departure == "unclear" or destination == "unclear":
+        departure, destination, current = process_station(spelling_corrected)
 
     return destination, current, minutes_late
 
@@ -397,9 +425,13 @@ def lemmatize_and_clean(input):
 
 if __name__ == "__main__":
     # TESTING INPUTS HERE
-    input = "i have a 16-25 railcard."
+    input = "colechester"
     print("\nInput: ", input)
-    print("Railcard: ", process_railcard_only(input))
+    print("Station: ", process_single_station(input))
+
+    # input = "i have a 16-25 railcard."
+    # print("\nInput: ", input)
+    # print("Railcard: ", process_railcard_only(input))
 
     # input = "four"
     # print("\nInput: ", input)
@@ -409,13 +441,13 @@ if __name__ == "__main__":
     # print("\nInput: ", input)
     # print("Passengers: ", process_passengers(input))
     #
-    # input = "3rd of May"
+    # input = "10th of July"
     # print("\nInput: ", input)
     # print("Date: ", process_date(input))
     #
-    # input = "seven am"
-    # print("\nInput: ", input)
-    # print("Time: ", process_time(input))
+    input = "7:32 am"
+    print("\nInput: ", input)
+    print("Time: ", process_hour(input))
     #
     # input = "I'm seven minutes and half an hour late."
     # print("\nInput: ", input)
@@ -426,7 +458,7 @@ if __name__ == "__main__":
     # print("Intention: ", process_intention(input))
     # print("Stations: ", process_station(input))
     #
-    # input = "I would like to buy a ticket from norwich to ipswich for four passengers at 7 am on the 3rd of May"
+    # input = "I would like to buy a tcket from norwich to ipswich for four passnger at 7 am on the 4th of December"
     # print("\nInput: ", input)
     # print("Intention: ", process_intention(input))
     # print("Booking Info: ", process_booking_input(input))

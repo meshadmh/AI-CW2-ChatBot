@@ -142,7 +142,7 @@ def input_departure_date(driver, choose_date):
         # Select the day PLS
         day_element = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable(
-                (By.XPATH, f"//div[contains(@aria-label, '{choose_date_obj.strftime('%A, %-d %B %Y')}')]"))
+                (By.XPATH, f"//div[contains(@aria-label, '{choose_date_obj.strftime('%A, %d %B %Y')}')]"))
         )
         day_element.click()
         time.sleep(2)
