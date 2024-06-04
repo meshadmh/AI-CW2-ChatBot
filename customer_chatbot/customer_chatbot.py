@@ -169,18 +169,32 @@ class ChatBot:
             if expert.request == "get_destination":
                 destination = ip.process_single_station(msg)
                 print(destination)
-                expert.declare(Ticket(destination=destination))
-                expert.request = ""
+                if destination and destination != 'unclear':
+                    expert.declare(Delay(destination=destination))
+                    expert.request = ""
+                else:
+                    self.insert_messages("Sorry, I didn't get that. Please re-enter your destination station.", "Chatbot")
+                    self.reinput = True
             elif expert.request == 'get_current':
                 current = ip.process_single_station(msg)
                 print(current)
-                expert.declare(Ticket(current=current))
-                expert.request = ""
+                if current and current != 'unclear':
+                    expert.declare(Delay(current=current))
+                    expert.request = ""
+                else:
+                    self.insert_messages("Sorry, I didn't get that. Please re-enter your current station.",
+                                         "Chatbot")
+                    self.reinput = True
             elif expert.request == 'get_lateness':
                 minutes_late = ip.process_lateness(msg)
                 print(minutes_late)
-                expert.declare(Ticket(minutes_late=minutes_late))
-                expert.request = ""
+                if minutes_late and minutes_late != 'unclear':
+                    expert.declare(Delay(minutes_late=minutes_late))
+                    expert.request = ""
+                else:
+                    self.insert_messages("Sorry, I didn't get that. Please re-enter how many minutes late you are.",
+                                         "Chatbot")
+                    self.reinput = True
 
         else:
             # If this is the first input, identify user's overall intention (booking, delay etc)
@@ -204,32 +218,19 @@ class ChatBot:
                     print(results)
                     # app.insert_messages(results, "Chatbot")
 
-                    # Keep track of whether all information is gathered from initial input
-                    completion_counter = 0
                     # Declare results if they returned a relevant value
                     if destination and destination != 'unclear':
                         expert.declare(Ticket(destination=destination))
-                        completion_counter += 1
                     if departure and departure != 'unclear':
                         expert.declare(Ticket(departure=departure))
-                        completion_counter += 1
                     if date and date != 'unclear':
                         expert.declare(Ticket(date=date))
-                        completion_counter += 1
                     if time and time != 'unclear':
                         expert.declare(Ticket(time=time))
-                        completion_counter += 1
                     if (adults and adults != 0) or (children and children != 0):
                         expert.declare(Ticket(adults=adults, children=children))
-                        completion_counter += 1
                     if railcard and railcard != "unclear":
                         expert.declare(Ticket(railcard=railcard))
-                        completion_counter += 1
-
-                    # Mark as complete if all information given in one input
-                    # if (completion_counter == 5) and (passenger_check >= 1):
-                    #     expert.type = "complete"
-
                     expert.declare(UserIntent(action='buy_ticket'))
 
                 case 'delay':
@@ -239,11 +240,11 @@ class ChatBot:
                     destination, current, minutes_late = ip.process_delay_input(msg)
 
                     if destination and destination != 'unclear':
-                        expert.declare(Ticket(destination=destination))
+                        expert.declare(Delay(destination=destination))
                     if current and current != 'unclear':
-                        expert.declare(Ticket(current=current))
+                        expert.declare(Delay(current=current))
                     if minutes_late and minutes_late != 'unclear':
-                        expert.declare(Ticket(minutes_late=minutes_late))
+                        expert.declare(Delay(minutes_late=minutes_late))
                     expert.declare(UserIntent(action='check_delay'))
 
                 case 'unclear':
@@ -386,28 +387,28 @@ class CustomerExpert(KnowledgeEngine):
 
     # DELAY RULES
 
-    @Rule(AS.delay_dest << (UserIntent(action='check_delay')) & NOT(Ticket(destination=W())),
+    @Rule(AS.delay_dest << (UserIntent(action='check_delay')) & NOT(Delay(destination=W())),
           salience=4)
     def ask_delay_destination(self):
         self.request = "get_destination"
         app.insert_messages("Please enter the destination station:", "Chatbot")
         self.halt()
 
-    @Rule(AS.delay_current << (UserIntent(action='check_delay')) & NOT(Ticket(current=W())),
+    @Rule(AS.delay_current << (UserIntent(action='check_delay')) & NOT(Delay(current=W())),
           salience=3)
     def ask_current(self):
         self.request = "get_current"
         app.insert_messages("Please enter the current station:", "Chatbot")
         self.halt()
 
-    @Rule(AS.delay_current << (UserIntent(action='check_delay')) & NOT(Ticket(minutes_late=W())),
+    @Rule(AS.delay_current << (UserIntent(action='check_delay')) & NOT(Delay(minutes_late=W())),
           salience=2)
     def ask_lateness(self):
         self.request = "get_lateness"
         app.insert_messages("Please enter how late you are: ", "Chatbot")
         self.halt()
 
-    @Rule(UserIntent(action='check_delay') & Ticket(destination=MATCH.d) & Ticket(current=MATCH.c) & Ticket(
+    @Rule(UserIntent(action='check_delay') & Delay(destination=MATCH.d) & Delay(current=MATCH.c) & Delay(
         minutes_late=MATCH.ml),
           salience=1)
     def print_delay_report(self, d, c, ml):
