@@ -148,16 +148,10 @@ class ChatBot:
             elif expert.request == "get_passengers":
                 adults, children = ip.process_passengers_only(msg)
                 print(adults, children)
-                passenger_check = 0
-                if adults and adults != 0:
-                    expert.declare(Ticket(adults=adults))
+                if (adults and adults != 0) or (children and children != 0):
+                    expert.declare(Ticket(adults=adults, children=children))
                     expert.request = ""
-                    passenger_check += 1
-                if children and children != 0:
-                    expert.declare(Ticket(children=children))
-                    expert.request = ""
-                    passenger_check += 1
-                if passenger_check < 1:
+                else:
                     self.insert_messages("Sorry, I didn't get that. Please re-enter the number of adult and child passengers.", "Chatbot")
                     self.reinput = True
             elif expert.request == "get_railcard":
@@ -212,8 +206,6 @@ class ChatBot:
 
                     # Keep track of whether all information is gathered from initial input
                     completion_counter = 0
-                    passenger_check = 0
-
                     # Declare results if they returned a relevant value
                     if destination and destination != 'unclear':
                         expert.declare(Ticket(destination=destination))
@@ -227,12 +219,9 @@ class ChatBot:
                     if time and time != 'unclear':
                         expert.declare(Ticket(time=time))
                         completion_counter += 1
-                    if adults and adults != 0:
-                        expert.declare(Ticket(adults=adults))
-                        passenger_check += 1
-                    if children and children != 0:
-                        expert.declare(Ticket(children=children))
-                        passenger_check += 1
+                    if (adults and adults != 0) or (children and children != 0):
+                        expert.declare(Ticket(adults=adults, children=children))
+                        completion_counter += 1
                     if railcard and railcard != "unclear":
                         expert.declare(Ticket(railcard=railcard))
                         completion_counter += 1
@@ -286,7 +275,7 @@ class ChatBot:
         self.text_widget.configure(state=tk.DISABLED)
         self.text_widget.see(tk.END)
 
-    def insert_messages(self, msg, sender, url=None):
+    def insert_messages(self, msg, sender):
         if not msg:
             return
 
@@ -295,13 +284,13 @@ class ChatBot:
         self.text_widget.configure(cursor="arrow", state=tk.NORMAL)
         self.text_widget.insert(tk.END, msg1)
 
-        # Check if the message contains a URL
-        str_msg = str(msg)
-        urls = re.findall(r'(https?://\S+)', str_msg)
-        for link in urls:
-            self.text_widget.insert(tk.END, url, ('link', url))
-            self.text_widget.tag_config('link', foreground='blue', underline=True)
-            self.text_widget.tag_bind('link', '<Button-1>', lambda event, link=url: webbrowser.open_new(url))
+        # # Check if the message contains a URL
+        # str_msg = str(msg)
+        # urls = re.findall(r'(https?://\S+)', str_msg)
+        # for link in urls:
+        #     self.text_widget.insert(tk.END, url, ('link', url))
+        #     self.text_widget.tag_config('link', foreground='blue', underline=True)
+        #     self.text_widget.tag_bind('link', '<Button-1>', lambda event, link=url: webbrowser.open_new(url))
 
         self.text_widget.see(tk.END)
         self.text_widget.configure(state=tk.DISABLED)
