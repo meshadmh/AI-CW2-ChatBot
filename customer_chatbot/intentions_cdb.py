@@ -12,6 +12,9 @@ intentions = {
         "Can I reserve a seat on the next train?",
         "Book me a seat for tomorrow's journey.",
         "How do I make a booking?"
+        "Book a train from to"
+        "I want a ticket from to"
+        "Price for passengers to"
     ],
     "delay": [
         "Is the train running late?",
@@ -19,13 +22,6 @@ intentions = {
         "Has the train been delayed?",
         "Why is the train delayed?",
         "When will the delayed train arrive?"
-    ],
-    "guidance": [
-        "what steps should i take",
-        "how to fix the issue of",
-        "there is an issue on the trainline",
-        "i need help with a problem",
-        "what should i do to solve an problem"
     ],
     "greeting": [
         "hello",

@@ -141,6 +141,49 @@ def process_hour(input_hour):
         return 'unclear'
 
 
+def process_passengers_only(input_passengers):
+    doc = nlp(input_passengers)
+
+    # Initialise counters for adults and children
+    adult_count = 0
+    child_count = 0
+
+    # Loop through each token in the processed text
+    i = 0
+    while i < len(doc):
+        token = doc[i]
+
+        # Check if the token is a number
+        if token.is_digit or token.like_num:
+            # convert written number to integer if needed
+            try:
+                number = w2n.word_to_num(token.text) if token.like_num else int(token.text)
+            except ValueError:
+                # If conversion fails, move to the next token
+                i += 1
+                continue
+
+            # Check if the next token represents "adult" or "child" variations
+            # If no age signifier is given, assume adults
+            if i < len(doc) - 1:
+                if token.nbor().text.lower() in ('adult', 'adults', 'passenger', 'passengers', 'ticket', 'tickets',
+                                                 'people', 'person'):
+                    adult_count += number
+                elif token.nbor().text.lower() in ('child', 'children', 'kid', 'kids'):
+                    child_count += number
+                # Move to next token, skipping over 'adult/child' token
+                else:
+                    adult_count += number
+                i += 2
+            else:
+                adult_count += number
+                break
+        else:
+            i += 1
+
+    # Return the counts of adults and children
+    return adult_count, child_count
+
 def process_passengers(input_passengers):
     doc = nlp(input_passengers)
 
@@ -287,11 +330,25 @@ def process_staff(input_staff):
 
 def process_railcard(input_railcard):
     doc1 = nlp(input_railcard)
-    railcard = 0
+    railcard = "unclear"
     for token in doc1:
         if token.text.lower() in ["railcard", "card"]:
             railcard = rc.get_railcard(input_railcard)
-        if railcard != 0:
+        if railcard != "unclear":
+            break
+
+    return railcard
+
+
+def process_railcard_only(input_railcard):
+    doc1 = nlp(input_railcard)
+    railcard = "unclear"
+    for token in doc1:
+        if token.text.lower() in ["no", "none", "don't"]:
+            return "no"
+        if token.text.lower() in ["railcard", "card"]:
+            railcard = rc.get_railcard(input_railcard)
+        if railcard != "unclear":
             break
 
     return railcard
@@ -340,9 +397,13 @@ def lemmatize_and_clean(input):
 
 if __name__ == "__main__":
     # TESTING INPUTS HERE
-    input = "i have a dcg railcard."
+    input = "i have a 16-25 railcard."
     print("\nInput: ", input)
-    print("Railcard: ", process_railcard(input))
+    print("Railcard: ", process_railcard_only(input))
+
+    # input = "four"
+    # print("\nInput: ", input)
+    # print("Passengers: ", process_passengers_only(input))
 
     # input = "3 adults and two children for Norwich"
     # print("\nInput: ", input)

@@ -6,77 +6,69 @@ collection = chroma_client.create_collection(name="railcard_collection")
 
 # Define intentions and their corresponding inputs
 railcards = {
-    "TSU": [
+    "16-17 Saver": [
         "16-17 Saver",
-        "TSU",
+        "TSU railcard",
     ],
-    "YNG": [
+    "16-25 Railcard": [
         "16-25 Railcard",
-        "YNG",
+        "YNG railcard",
     ],
-    "TST": [
+    "26-30 Railcard": [
         "26-30 Railcard",
-        "TST",
+        "TST railcard",
     ],
-    "NGC": [
+    "Annual Gold Card": [
         "annual gold card",
-        "ngc",
+        "ngc railcard",
     ],
-    "DRD": [
+    "Dales Railcard": [
         "dales railcard",
-        "drd",
+        "drd railcard",
     ],
-    "DCG": [
+    "Devon & Cornwall Gold Card": [
         "devon & cornwall gold card",
         "devon and cornwall gold card"
-        "dcg",
+        "dcg railcard",
     ],
-    "DCR": [
+    "Devon & Cornwall Card": [
         "devon & cornwall card",
         "devon and cornwall card"
-        "dcr",
+        "dcr railcard",
     ],
-    "DIS": [
+    "Disabled Persons Railcard": [
         "disabled persons railcard",
-        "dis",
+        "dis railcard",
     ],
-    "EVC": [
+    "Esk Valley Railcard": [
         "esk valley railcard",
-        "evc",
+        "evc railcard",
     ],
-    "FAM": [
+    "Family & Friends Railcard": [
         "family & friends railcard",
-        "fam",
+        "fam railcard",
     ],
-    "GS3": [
+    "Group Save Railcard": [
         "group save railcard",
-        "GS3",
+        "GS3 railcard",
     ],
-    "HRC": [
+    "Highland Railcard": [
         "highland railcard",
-        "hrc",
+        "hrc railcard",
     ],
-    "HMF": [
+    "HM Forces Railcard": [
         "hm forces railcard",
-        "hmf",
+        "hmf railcard",
     ],
-    "JCP": [
+    "Jobcentre Plus Travel Discount Card": [
         "job centre plus travel discount card",
-        "hrc",
+        "hrc railcard",
     ],
-    "CUR": [
+    "MyCumbriaCard": [
         "my cumbria card",
-        "cur",
-    ],
-    "none": [
-        "no",
-        "none",
-        "don't have one",
-        "I have no railcard"
+        "cur railcard",
     ]
 }
-
-
 
 
 # Add inputs to collection with corresponding IDs

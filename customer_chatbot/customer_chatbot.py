@@ -146,7 +146,7 @@ class ChatBot:
                     self.insert_messages("Sorry, I didn't get that. Please re-enter the time of your travel.", "Chatbot")
                     self.reinput = True
             elif expert.request == "get_passengers":
-                adults, children = ip.process_passengers(msg)
+                adults, children = ip.process_passengers_only(msg)
                 print(adults, children)
                 passenger_check = 0
                 if adults and adults != 0:
@@ -161,7 +161,7 @@ class ChatBot:
                     self.insert_messages("Sorry, I didn't get that. Please re-enter the number of adult and child passengers.", "Chatbot")
                     self.reinput = True
             elif expert.request == "get_railcard":
-                railcard = ip.process_railcard(msg)
+                railcard = ip.process_railcard_only(msg)
                 print(railcard)
                 if railcard and railcard != 'unclear':
                     expert.declare(Ticket(railcard=railcard))
@@ -233,7 +233,7 @@ class ChatBot:
                     if children and children != 0:
                         expert.declare(Ticket(children=children))
                         passenger_check += 1
-                    if railcard and railcard != 0:
+                    if railcard and railcard != "unclear":
                         expert.declare(Ticket(railcard=railcard))
                         completion_counter += 1
 
@@ -286,7 +286,7 @@ class ChatBot:
         self.text_widget.configure(state=tk.DISABLED)
         self.text_widget.see(tk.END)
 
-    def insert_messages(self, msg, sender):
+    def insert_messages(self, msg, sender, url=None):
         if not msg:
             return
 
@@ -298,10 +298,10 @@ class ChatBot:
         # Check if the message contains a URL
         str_msg = str(msg)
         urls = re.findall(r'(https?://\S+)', str_msg)
-        for url in urls:
+        for link in urls:
             self.text_widget.insert(tk.END, url, ('link', url))
             self.text_widget.tag_config('link', foreground='blue', underline=True)
-            self.text_widget.tag_bind('link', '<Button-1>', lambda event, url: webbrowser.open_new(url))
+            self.text_widget.tag_bind('link', '<Button-1>', lambda event, link=url: webbrowser.open_new(url))
 
         self.text_widget.see(tk.END)
         self.text_widget.configure(state=tk.DISABLED)
@@ -385,7 +385,7 @@ class CustomerExpert(KnowledgeEngine):
         app.insert_messages(report, "Chatbot")
         tm.sleep(1)
 
-        ticket_links = Webscraping.main(d, de, dt, t, [a, c], r)
+        ticket_links = Webscraping.main(d, de, dt, t, a, c, r)
         if ticket_links:
             for link in ticket_links:
                 app.insert_messages(f"Ticket Link: {link}", "Chatbot")
