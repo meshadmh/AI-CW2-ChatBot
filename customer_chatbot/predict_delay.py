@@ -133,7 +133,7 @@ def predict_lateness(current_station, target, lateness):
     target = convert_station(target)
     stations = ['LIVST', 'STFD', 'SHENFLD', 'CHLMSFD', 'CLCHSTR', 'MANNGTR', 'IPSWICH', 'STWMRKT', 'DISS', 'NRCH']
     starting_index = stations.index(current_station)
-    time_between_stations = [20, 10, 30, 15, 18, 19, 20, 10, 9]  # TODO  FILL THESE IN WITH CORRECT VALUES
+    time_between_stations = [8, 16, 10, 26, 10, 8, 16, 12, 21]
     end_index = stations.index(target)
     time_of_journey = sum(time_between_stations[starting_index:end_index])
     # starting_index = starting_index + 1

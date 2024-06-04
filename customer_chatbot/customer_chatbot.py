@@ -27,9 +27,9 @@ TEXT_COLOUR = "black"
 FONT = "Helvetica 14"
 FONT_BOLD = "Helvetica 13 bold"
 
-
 class ChatBot:
     def __init__(self):
+        self.reinput = False   # Flag for handling cases where unclear information is given
         self.window = tk.Tk()
         self._setup_main_window()
         self.initial_message()
@@ -94,102 +94,153 @@ class ChatBot:
 
     def kill(self):
         self.window.destroy()
-        # TODO destroy doesnt actually work
 
     def parse_message(self, msg):
-        if expert.type == "completed":
+        """
+        When a rule is triggered in Experta, it adds two tags to indicate to the RE how to process the resulting user response.
+        expert.type --> indicates the overall goal of the current message path (booking or delay) and indicates when complete.
+        expert.request --> indicates the specific piece of information the user has been asked to provide.
+        self.reinput --> indicates unclear information has been given. skips the running of the ke to ask for the information again.
+        """
+
+        if expert.type == "completed":  # Once a request is fulfilled, reset engine to allow another request cycle
             expert.reset()
 
-        if expert.type == "booking":
-            self.insert_messages("BOOKING", "TEST")
+        if expert.type == "booking":    # Process inputs that are tied to the booking pathway
             if expert.request == "get_destination":
-                self.insert_messages("DESTINATION", "TEST")
-                print(msg)
                 destination = ip.process_single_station(msg)
-                self.insert_messages(destination, "TEST")
-                expert.declare(Ticket(destination=destination))
-                expert.request = ""
+                print(destination)
+                if destination and destination != 'unclear':
+                    expert.declare(Ticket(destination=destination))
+                    expert.request = ""
+                else:
+                    self.insert_messages("Sorry, I didn't get that. Please re-enter your destination station.", "Chatbot")
+                    self.reinput = True
             elif expert.request == "get_departure":
-                self.insert_messages("DEPARTURE", "TEST")
                 departure = ip.process_single_station(msg)
-                self.insert_messages(departure, "TEST")
-                expert.declare(Ticket(departure=departure))
-                expert.request = ""
+                print(departure)
+                if departure and departure != 'unclear':
+                    expert.declare(Ticket(departure=departure))
+                    expert.request = ""
+                else:
+                    self.insert_messages("Sorry, I didn't get that. Please re-enter your departure station.", "Chatbot")
+                    self.reinput = True
             elif expert.request == "get_date":
                 date = ip.process_date(msg)
-                self.insert_messages(date, "TEST")
+                print(date)
+                if date and date != 'unclear':
+                    expert.declare(Ticket(date=date))
+                    expert.request = ""
+                else:
+                    self.insert_messages("Sorry, I didn't get that. Please re-enter your date of travel.", "Chatbot")
+                    self.reinput = True
                 expert.declare(Ticket(date=date))
                 expert.request = ""
             elif expert.request == "get_time":
-                train_time = ip.process_time(msg)
-                self.insert_messages(train_time, "TEST")
-                expert.declare(Ticket(time=train_time))
-                expert.request = ""
+                train_time = ip.process_hour(msg)
+                print(train_time)
+                if train_time and train_time != 'unclear':
+                    expert.declare(Ticket(time=train_time))
+                    expert.request = ""
+                else:
+                    self.insert_messages("Sorry, I didn't get that. Please re-enter the time of your travel.", "Chatbot")
+                    self.reinput = True
             elif expert.request == "get_passengers":
                 adults, children = ip.process_passengers(msg)
-                self.insert_messages(adults, "TEST")
-                self.insert_messages(children, "TEST")
-                expert.declare(Ticket(adults=adults, children=children))
-                expert.request = ""
+                print(adults, children)
+                passenger_check = 0
+                if adults and adults != 0:
+                    expert.declare(Ticket(adults=adults))
+                    expert.request = ""
+                    passenger_check += 1
+                if children and children != 0:
+                    expert.declare(Ticket(children=children))
+                    expert.request = ""
+                    passenger_check += 1
+                if passenger_check < 1:
+                    self.insert_messages("Sorry, I didn't get that. Please re-enter the number of adult and child passengers.", "Chatbot")
+                    self.reinput = True
             elif expert.request == "get_railcard":
                 railcard = ip.process_railcard(msg)
-                self.insert_messages(railcard, "TEST")
-                expert.declare(Ticket(railcard=railcard))
-                expert.request = ""
+                print(railcard)
+                if railcard and railcard != 'unclear':
+                    expert.declare(Ticket(railcard=railcard))
+                    expert.request = ""
+                else:
+                    self.insert_messages("Sorry, I didn't get that. If you have a railcard, please enter its type. Otherwise, reply 'No'.",
+                                         "Chatbot")
+                    self.reinput = True
 
-        elif expert.type == 'delay':
+        elif expert.type == 'delay':    # Process inputs that are tied to the delay pathway
             if expert.request == "get_destination":
                 destination = ip.process_single_station(msg)
-                self.insert_messages(destination, "TEST")
+                print(destination)
                 expert.declare(Ticket(destination=destination))
                 expert.request = ""
             elif expert.request == 'get_current':
                 current = ip.process_single_station(msg)
-                self.insert_messages(current, "TEST")
+                print(current)
                 expert.declare(Ticket(current=current))
                 expert.request = ""
             elif expert.request == 'get_lateness':
                 minutes_late = ip.process_lateness(msg)
-                self.insert_messages(minutes_late, "TEST")
+                print(minutes_late)
                 expert.declare(Ticket(minutes_late=minutes_late))
                 expert.request = ""
 
         else:
+            # If this is the first input, identify user's overall intention (booking, delay etc)
             intention_result = intentions.get_similar_intention(msg)
             match intention_result:
                 case 'greeting':
                     self.insert_messages("Hello! I can help you book a ticket or monitor a delay.", "Chatbot")
-
                 case 'goodbye':
                     self.insert_messages("Goodbye! Thank you for using this service.", "Chatbot")
                     tm.sleep(2)
                     self.kill()
-
                 case 'thanks':
                     self.insert_messages("I'm glad I was useful. Let me know if you need anything else.", "Chatbot")
-
                 case 'booking':
                     expert.reset()
-                    expert.type = 'booking'
+                    expert.type = 'booking'     # Set the pathway type
 
+                    # Process the initial message to extract as much information as possible
                     departure, destination, time, date, adults, children, railcard = ip.process_booking_input(msg)
                     results = f"Initial Results: {departure}, {destination}, {date}, {time}, {adults}, {children}, {railcard}\n"
-                    app.insert_messages(results, "Chatbot")
+                    print(results)
+                    # app.insert_messages(results, "Chatbot")
 
+                    # Keep track of whether all information is gathered from initial input
+                    completion_counter = 0
+                    passenger_check = 0
+
+                    # Declare results if they returned a relevant value
                     if destination and destination != 'unclear':
                         expert.declare(Ticket(destination=destination))
+                        completion_counter += 1
                     if departure and departure != 'unclear':
                         expert.declare(Ticket(departure=departure))
+                        completion_counter += 1
                     if date and date != 'unclear':
                         expert.declare(Ticket(date=date))
+                        completion_counter += 1
                     if time and time != 'unclear':
                         expert.declare(Ticket(time=time))
+                        completion_counter += 1
                     if adults and adults != 0:
                         expert.declare(Ticket(adults=adults))
+                        passenger_check += 1
                     if children and children != 0:
                         expert.declare(Ticket(children=children))
+                        passenger_check += 1
                     if railcard and railcard != 0:
                         expert.declare(Ticket(railcard=railcard))
+                        completion_counter += 1
+
+                    # Mark as complete if all information given in one input
+                    # if (completion_counter == 5) and (passenger_check >= 1):
+                    #     expert.type = "complete"
+
                     expert.declare(UserIntent(action='buy_ticket'))
 
                 case 'delay':
@@ -215,8 +266,18 @@ class ChatBot:
         msg = self.message_entry.get()
         self.insert_messages(msg, "You")
         self.parse_message(msg)
-        expert.declare(Fact("get_input", user_input=msg))
-        expert.run()
+
+        """
+            self.reinput handles cases where a user inputs poor information.
+            If True, the knowledge engine is not run, allowing the information to be re-entered.
+            Once the KE is skipped, the self.reinput is set to false to end the cycle.
+        """
+
+        if not self.reinput:
+            expert.declare(Fact("get_input", user_input=msg))
+            expert.run()
+        else:
+            self.reinput = False
 
     def initial_message(self):
         message = "Welcome to the train service chatbot!\nWhat can I help you with today? \n"

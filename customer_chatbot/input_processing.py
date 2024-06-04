@@ -121,6 +121,25 @@ def process_time(input_time):
     else:
         return 'unclear'
 
+def process_hour(input_hour):
+    doc = nlp(input_hour)
+    time_ent = ""
+
+    for ent in doc.ents:
+        if ent.label_ == "TIME":
+            time_ent = ent.text
+
+    # Parse the input time string
+    parsed_date = dateparser.parse(time_ent)
+
+    # Extract and format time
+    if parsed_date is not None:
+        parsed_time = parsed_date.time()
+        hhmm_time = parsed_time.strftime("%H")
+        return hhmm_time
+    else:
+        return 'unclear'
+
 
 def process_passengers(input_passengers):
     doc = nlp(input_passengers)
@@ -283,7 +302,8 @@ def process_railcard(input_railcard):
 
 def process_booking_input(initial_input):
     departure, destination, current = process_station(initial_input)
-    time = process_time(initial_input)
+    # time = process_time(initial_input)
+    time = process_hour(initial_input)
     date = process_date(initial_input)
     adults, children = process_passengers(initial_input)
     railcard = process_railcard(initial_input)
@@ -296,6 +316,7 @@ def process_delay_input(initial_input):
     minutes_late = process_lateness(initial_input)
 
     return destination, current, minutes_late
+
 
 def process_problem_input(initial_input):
     problem_type = problem.get_blockage_type(initial_input)
