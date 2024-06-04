@@ -216,7 +216,7 @@ class ChatBot:
                     departure, destination, time, date, adults, children, railcard = ip.process_booking_input(msg)
                     results = f"Initial Results: {departure}, {destination}, {date}, {time}, {adults}, {children}, {railcard}\n"
                     print(results)
-                    app.insert_messages(results, "Chatbot")
+                    # app.insert_messages(results, "Chatbot")
 
                     # Declare results if they returned a relevant value
                     if destination and destination != 'unclear':
@@ -283,16 +283,20 @@ class ChatBot:
         self.message_entry.delete(0, tk.END)
         msg1 = f"{sender}: {msg} \n"
         self.text_widget.configure(cursor="arrow", state=tk.NORMAL)
-        self.text_widget.insert(tk.END, msg1)
+        # self.text_widget.insert(END, msg1)
 
         # # Check if the message contains a URL
-        # str_msg = str(msg)
-        # urls = re.findall(r'(https?://\S+)', str_msg)
-        # for link in urls:
-        #     self.text_widget.insert(tk.END, url, ('link', url))
-        #     self.text_widget.tag_config('link', foreground='blue', underline=True)
-        #     self.text_widget.tag_bind('link', '<Button-1>', lambda event, link=url: webbrowser.open_new(url))
 
+        str_msg = str(msg)
+        urls = re.findall(r'(https?://\S+)', str_msg)
+        if len(urls) > 0:
+            for link in urls:
+                self.text_widget.insert(tk.END, link, ('link', link))
+                self.text_widget.tag_config('link', foreground='blue', underline=True)
+                self.text_widget.tag_bind('link', '<Button-1>', lambda event, url=link: webbrowser.open_new(url))
+            # self.text_widget.insert(tk.END, "YAY! THE TICKET!!!!")
+        else:
+            self.text_widget.insert(tk.END, msg1)
         self.text_widget.see(tk.END)
         self.text_widget.configure(state=tk.DISABLED)
 

@@ -150,8 +150,10 @@ def process_hour(input_hour):
         # Round minutes to quarter of an hour
         int_minutes = int(mm_time)
         round_minutes = round(int_minutes / 15) * 15
-        # Properly format 60 minutes
+        # Properly format 60 and 0 minutes
         if round_minutes == 60:
+            round_minutes = 00
+        elif round_minutes == 0:
             round_minutes = 00
         minutes = str(round_minutes)
         return [hh_time, minutes]

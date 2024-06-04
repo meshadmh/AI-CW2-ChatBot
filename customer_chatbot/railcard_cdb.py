@@ -4,9 +4,9 @@ chroma_client = chromadb.Client()
 
 collection = chroma_client.create_collection(name="railcard_collection")
 
-# Define intentions and their corresponding inputs
+# Define railcards and their corresponding inputs
 railcards = {
-    "16-17 Saver": [
+    "TSU": [
         "16-17 Saver",
         "TSU railcard",
     ],
